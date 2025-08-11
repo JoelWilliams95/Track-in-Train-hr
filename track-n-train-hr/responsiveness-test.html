@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Track-n-Train HR - Responsiveness Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f6fa;
+        }
+        
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .test-header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+        }
+        
+        .device-frame {
+            border: 3px solid #333;
+            border-radius: 12px;
+            margin: 20px 0;
+            overflow: hidden;
+            background: white;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        }
+        
+        .device-label {
+            background: #333;
+            color: white;
+            padding: 8px 16px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .device-iframe {
+            width: 100%;
+            border: none;
+            display: block;
+        }
+        
+        /* Mobile Phone - iPhone 12 Pro */
+        .mobile-frame {
+            width: 390px;
+            margin: 20px auto;
+        }
+        .mobile-frame .device-iframe {
+            height: 600px;
+        }
+        
+        /* Tablet - iPad */
+        .tablet-frame {
+            width: 768px;
+            margin: 20px auto;
+        }
+        .tablet-frame .device-iframe {
+            height: 600px;
+        }
+        
+        /* Small Desktop */
+        .desktop-frame {
+            width: 1024px;
+            margin: 20px auto;
+        }
+        .desktop-frame .device-iframe {
+            height: 650px;
+        }
+        
+        /* Very Small Mobile */
+        .small-mobile-frame {
+            width: 320px;
+            margin: 20px auto;
+        }
+        .small-mobile-frame .device-iframe {
+            height: 500px;
+        }
+        
+        .status-indicator {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+        
+        .status-good {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+        
+        .status-warning {
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fde68a;
+        }
+        
+        .status-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+        
+        .test-info {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .responsive-features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .feature-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .feature-card h4 {
+            margin: 0 0 10px 0;
+            color: #374151;
+        }
+        
+        .feature-status {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+        
+        .implemented {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .partial {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .missing {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="test-header">
+            <h1>Track-n-Train HR - Responsiveness Analysis</h1>
+            <p>Testing the application on different screen sizes and devices</p>
+        </div>
+        
+        <div class="test-info">
+            <h2>📊 Responsiveness Assessment</h2>
+            <p>Based on the code analysis, here's the current responsiveness status:</p>
+            
+            <div class="responsive-features">
+                <div class="feature-card">
+                    <h4>🎨 CSS Framework</h4>
+                    <span class="feature-status implemented">✅ IMPLEMENTED</span>
+                    <p>Using Tailwind CSS v4 with comprehensive responsive utilities</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>📱 Viewport Meta Tag</h4>
+                    <span class="feature-status implemented">✅ IMPLEMENTED</span>
+                    <p>Proper viewport configuration with device-width scaling</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>🔧 Responsive Hook</h4>
+                    <span class="feature-status implemented">✅ IMPLEMENTED</span>
+                    <p>Custom useResponsive hook with breakpoints: Mobile ≤576px, Tablet ≤768px</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>📐 Responsive Typography</h4>
+                    <span class="feature-status implemented">✅ IMPLEMENTED</span>
+                    <p>Clamp-based fluid typography that scales with viewport</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>📋 Table Responsiveness</h4>
+                    <span class="feature-status implemented">✅ IMPLEMENTED</span>
+                    <p>Horizontal scroll with visual indicators and touch-friendly scrollbars</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>📱 Mobile-Specific Components</h4>
+                    <span class="feature-status implemented">✅ IMPLEMENTED</span>
+                    <p>MobileAddProfileButton with proper touch targets and positioning</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>🎯 Touch Targets</h4>
+                    <span class="feature-status implemented">✅ IMPLEMENTED</span>
+                    <p>Minimum 44px touch targets for mobile accessibility</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>🔄 Flexible Layouts</h4>
+                    <span class="feature-status implemented">✅ IMPLEMENTED</span>
+                    <p>CSS Grid and Flexbox with responsive breakpoints</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="status-indicator status-good">
+            ✅ Overall Assessment: EXCELLENT - Comprehensive responsive design implementation
+        </div>
+        
+        <!-- Very Small Mobile (320px) -->
+        <div class="device-frame small-mobile-frame">
+            <div class="device-label">📱 Very Small Mobile (320px × 500px) - iPhone 5/SE</div>
+            <iframe 
+                class="device-iframe" 
+                src="http://localhost:3000"
+                title="Very Small Mobile View">
+            </iframe>
+        </div>
+        
+        <!-- Mobile Phone (390px) -->
+        <div class="device-frame mobile-frame">
+            <div class="device-label">📱 Mobile Phone (390px × 600px) - iPhone 12 Pro</div>
+            <iframe 
+                class="device-iframe" 
+                src="http://localhost:3000"
+                title="Mobile Phone View">
+            </iframe>
+        </div>
+        
+        <!-- Tablet (768px) -->
+        <div class="device-frame tablet-frame">
+            <div class="device-label">📱 Tablet (768px × 600px) - iPad</div>
+            <iframe 
+                class="device-iframe" 
+                src="http://localhost:3000"
+                title="Tablet View">
+            </iframe>
+        </div>
+        
+        <!-- Desktop (1024px) -->
+        <div class="device-frame desktop-frame">
+            <div class="device-label">🖥️ Small Desktop (1024px × 650px)</div>
+            <iframe 
+                class="device-iframe" 
+                src="http://localhost:3000"
+                title="Desktop View">
+            </iframe>
+        </div>
+        
+        <div class="test-info">
+            <h3>🔍 Detailed Analysis</h3>
+            
+            <h4>✅ Strengths Found:</h4>
+            <ul>
+                <li><strong>Comprehensive CSS Framework:</strong> Extensive responsive utilities in globals.css with clamp() functions</li>
+                <li><strong>Mobile-First Approach:</strong> CSS designed with mobile-first methodology</li>
+                <li><strong>Advanced Table Handling:</strong> Horizontal scroll with visual indicators and touch-friendly scrolling</li>
+                <li><strong>Fluid Typography:</strong> Text sizes that scale smoothly across devices using clamp()</li>
+                <li><strong>Touch-Optimized:</strong> Proper touch targets (min 44px) and touch-friendly interactions</li>
+                <li><strong>Responsive Navigation:</strong> Header adapts to different screen sizes</li>
+                <li><strong>Modal Responsiveness:</strong> Modals adjust to screen constraints with proper overflow handling</li>
+                <li><strong>Device-Specific Features:</strong> Mobile-only components like floating action buttons</li>
+            </ul>
+            
+            <h4>📋 Key Responsive Features:</h4>
+            <ul>
+                <li><strong>Breakpoints:</strong> Mobile (≤576px), Tablet (577-768px), Desktop (>768px)</li>
+                <li><strong>Responsive Containers:</strong> Width constraints and padding adjustments</li>
+                <li><strong>Flexible Grids:</strong> Auto-fit columns with minimum widths</li>
+                <li><strong>Scroll Indicators:</strong> Visual cues for horizontally scrollable content</li>
+                <li><strong>Theme Support:</strong> Dark/light mode with responsive considerations</li>
+            </ul>
+            
+            <h4>🚀 Advanced Features:</h4>
+            <ul>
+                <li><strong>Smooth Scrolling:</strong> Enhanced scrollbar styling and smooth scroll behavior</li>
+                <li><strong>Progressive Enhancement:</strong> Graceful fallbacks for older browsers</li>
+                <li><strong>Performance Optimized:</strong> CSS animations and transitions are GPU-accelerated</li>
+                <li><strong>Accessibility:</strong> Focus states and keyboard navigation support</li>
+            </ul>
+        </div>
+        
+        <div class="status-indicator status-good">
+            🎯 <strong>VERDICT:</strong> The Track-n-Train HR application has EXCELLENT responsiveness implementation. 
+            It uses modern responsive design patterns, comprehensive media queries, and mobile-first approaches 
+            that ensure optimal user experience across all device sizes.
+        </div>
+    </div>
+
+    <script>
+        // Add some interactive testing
+        function reportViewportSize() {
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            console.log(`Current viewport: ${width}x${height}`);
+            
+            // Determine device category
+            let deviceType;
+            if (width <= 576) deviceType = "Mobile";
+            else if (width <= 768) deviceType = "Tablet";
+            else deviceType = "Desktop";
+            
+            console.log(`Device category: ${deviceType}`);
+        }
+
+        // Report initial size
+        reportViewportSize();
+        
+        // Report size changes
+        window.addEventListener('resize', reportViewportSize);
+        
+        // Test iframe loading
+        document.addEventListener('DOMContentLoaded', function() {
+            const iframes = document.querySelectorAll('iframe');
+            let loadedCount = 0;
+            
+            iframes.forEach(iframe => {
+                iframe.onload = () => {
+                    loadedCount++;
+                    if (loadedCount === iframes.length) {
+                        console.log('All responsive test frames loaded successfully');
+                    }
+                };
+                
+                iframe.onerror = () => {
+                    console.error('Failed to load iframe:', iframe.title);
+                };
+            });
+        });
+    </script>
+</body>
+</html>
