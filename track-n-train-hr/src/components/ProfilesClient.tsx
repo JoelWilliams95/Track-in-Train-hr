@@ -33,56 +33,8 @@ function ThemeToggle({ theme, setTheme }: { theme: string; setTheme: (t: string)
 function NavButtons() {
   const router = useRouter();
 
-  return (
-    <div style={{
-      position: "absolute",
-      top: 24,
-      left: 24,
-      display: "flex",
-      gap: 12,
-      zIndex: 10
-    }}>
-      <button
-        style={{
-          padding: "0.5rem 1.2rem",
-          borderRadius: 8,
-          border: "none",
-          background: "#2563eb",
-          color: "#fff",
-          fontWeight: 600,
-          boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
-          cursor: "pointer"
-        }}
-        aria-current="page"
-      >
-        Profiles
-      </button>
-      <button
-        onClick={() => router.push('/transport-routes')}
-        style={{
-          padding: "0.5rem 1.2rem",
-          borderRadius: 8,
-          border: "none",
-          background: "#10b981",
-          color: "#fff",
-          fontWeight: 600,
-          boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
-          cursor: "pointer",
-          transition: "all 0.2s ease"
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background = "#059669";
-          e.currentTarget.style.transform = "translateY(-1px)";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = "#10b981";
-          e.currentTarget.style.transform = "translateY(0)";
-        }}
-      >
-        🚌 Transport Routes
-      </button>
-    </div>
-  );
+  // Navigation buttons are now rendered directly in the Profiles component
+  return null;
 }
 
 export default function ProfilesClient({ personnelRecords, userName }: { personnelRecords: User[]; userName: string }) {

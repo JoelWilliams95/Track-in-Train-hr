@@ -742,7 +742,8 @@ div[style*="font-size: 12px"][style*="position: fixed"] {
 .responsive-modal-content {
   width: 100%;
   max-width: min(90vw, 800px);
-  max-height: 90vh;
+  max-height: 100vh; /* Set to 100vh as requested */
+  min-height: 170px; /* Set to 170px as requested */
   overflow-y: auto;
   background: white;
   border-radius: clamp(8px, 2vw, 16px);
@@ -753,8 +754,8 @@ div[style*="font-size: 12px"][style*="position: fixed"] {
 /* Responsive Floating Elements */
 .responsive-floating {
   position: fixed;
-  bottom: clamp(15px, 4vw, 30px);
-  right: clamp(15px, 4vw, 30px);
+  bottom: clamp(20px, 4vw, 35px);
+  right: clamp(20px, 4vw, 35px);
   width: clamp(45px, 12vw, 60px);
   height: clamp(45px, 12vw, 60px);
   border-radius: 50%;
@@ -763,8 +764,8 @@ div[style*="font-size: 12px"][style*="position: fixed"] {
 
 .responsive-floating-secondary {
   position: fixed;
-  bottom: clamp(15px, 4vw, 30px);
-  right: clamp(75px, 20vw, 100px);
+  bottom: clamp(20px, 4vw, 35px);
+  right: clamp(90px, 22vw, 120px); /* Increased spacing from 75px/100px to 90px/120px */
   width: clamp(40px, 10vw, 56px);
   height: clamp(40px, 10vw, 56px);
   border-radius: 50%;
@@ -774,13 +775,13 @@ div[style*="font-size: 12px"][style*="position: fixed"] {
 /* Adjust floating buttons on mobile to avoid overlap with add profile button */
 @media (max-width: 768px) {
   .responsive-floating {
-    bottom: clamp(20px, 5vw, 30px);
-    right: clamp(20px, 5vw, 30px);
+    bottom: clamp(25px, 5vw, 35px);
+    right: clamp(25px, 5vw, 35px);
   }
 
   .responsive-floating-secondary {
-    bottom: clamp(20px, 5vw, 30px);
-    right: clamp(80px, 22vw, 100px);
+    bottom: clamp(25px, 5vw, 35px);
+    right: clamp(100px, 25vw, 120px); /* Increased spacing for mobile */
   }
 }
 
@@ -860,6 +861,50 @@ div[style*="font-size: 12px"][style*="position: fixed"] {
   .mobile-add-profile-floating {
     display: none !important;
   }
+}
+
+/* Floating Add Profile Button Animation */
+@keyframes addProfilePulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 6px 25px rgba(16, 185, 129, 0.4);
+  }
+  50% {
+    transform: scale(1.02);
+    box-shadow: 0 8px 30px rgba(16, 185, 129, 0.6);
+  }
+}
+
+/* Floating Add Profile Button Styles */
+.floating-add-profile-button {
+  /* Ensure it's always visible - above all content */
+  position: fixed !important;
+  z-index: 1002 !important; /* Above other floating elements */
+
+  /* Always relative to viewport, not scrollable content */
+  left: clamp(20px, 5vw, 30px) !important;
+  bottom: clamp(20px, 5vw, 30px) !important;
+
+  /* Smooth animations */
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+
+  /* Touch-friendly */
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+
+  /* Prevent text selection */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+
+  /* Entrance animation */
+  animation: slideInFromLeft 0.6s ease-out;
+}
+
+/* Ensure button is accessible */
+.floating-add-profile-button:focus {
+  outline: 2px solid rgba(16, 185, 129, 0.5);
+  outline-offset: 2px;
 }
 
 /* Responsive Notification Panel */
@@ -1009,4 +1054,10 @@ div[style*="font-size: 12px"][style*="position: fixed"] {
     left: auto;
     width: 400px;
   }
+}
+
+/* Spinning animation for loading indicators */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }

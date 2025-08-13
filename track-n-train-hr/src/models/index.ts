@@ -15,6 +15,8 @@ export interface PickupPoint {
   location: import('../lib/leaflet-maps').Location;
   currentUsers: number;
   maxCapacity: number;
+  trajectoryCode?: string;
+  assignedUsers?: any[];
 }
 
 export interface EmployeeProfile {
@@ -130,7 +132,7 @@ export interface IUser extends Document {
   fullName: string;
   email: string;
   password: string;
-  role: 'SuperAdmin' | 'User' | 'hr' | 'manager' | 'teamlead';
+  role: 'SuperAdmin' | 'Admin' | 'User' | 'hr' | 'manager' | 'teamlead';
   zone: string;
   position?: string;
   phoneNumber?: string;
@@ -145,7 +147,7 @@ const UserSchema = new Schema<IUser>({
   password: { type: String, required: true },
   role: { 
     type: String, 
-    enum: ['SuperAdmin', 'User', 'hr', 'manager', 'teamlead'],
+    enum: ['SuperAdmin', 'Admin', 'User', 'hr', 'manager', 'teamlead'],
     required: true 
   },
   zone: { type: String, required: true },
@@ -224,7 +226,7 @@ const LogSchema = new Schema<ILog>({
   }
 }, {
   timestamps: true,
-  collection: 'personnelRecords' // Explicitly specify the collection name
+  collection: 'logs' // Explicitly specify the correct collection name for logs
 });
 
 // Export Models

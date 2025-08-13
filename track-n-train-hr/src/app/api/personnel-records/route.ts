@@ -113,3 +113,44 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
+
+export async function PUT(request: NextRequest) {
+  try {
+    const data = await request.json();
+
+    // Validate required fields
+    if (!data.fullName) {
+      return NextResponse.json({
+        error: 'Missing required field: fullName'
+      }, { status: 400 });
+    }
+
+    // Check if user exists
+    const existingRecord = await PersonnelRecordService.getByFullName(data.fullName);
+    if (!existingRecord) {
+      return NextResponse.json({
+        error: 'Personnel record not found'
+      }, { status: 404 });
+    }
+
+    // Update the record with new data
+    const updatedData = {
+      ...existingRecord,
+      ...data, // Override with new data
+      dateModified: new Date().toISOString().slice(0, 10)
+    };
+
+    const updated = await PersonnelRecordService.update(data.fullName, updatedData);
+
+    if (!updated) {
+      return NextResponse.json({
+        error: 'Failed to update personnel record'
+      }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true, data: updated });
+  } catch (error) {
+    console.error('Error updating personnel record:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}

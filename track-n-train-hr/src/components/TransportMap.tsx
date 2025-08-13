@@ -46,6 +46,7 @@ interface TransportMapProps {
   darkMode: boolean;
   onRouteSelect?: (route: TransportRoute) => void;
   onPickupPointSelect?: (pickupPoint: PickupPoint) => void;
+  onPickupPointClick?: (pickupPoint: PickupPoint) => void;
   newUserMode?: boolean;
   newUserData?: {
     fullName: string;
@@ -228,6 +229,7 @@ export default function TransportMap({
   darkMode,
   onRouteSelect,
   onPickupPointSelect,
+  onPickupPointClick,
   newUserMode = false,
   newUserData,
   onUserAssigned
@@ -442,6 +444,7 @@ export default function TransportMap({
 
   function handleMarkerClick(pickupPoint: PickupPoint) {
     onPickupPointSelect?.(pickupPoint);
+    onPickupPointClick?.(pickupPoint);
   }
 
   function createCustomIcon(type: 'start' | 'pickup' | 'end') {
@@ -623,9 +626,35 @@ export default function TransportMap({
                     <p style={{ margin: '0 0 4px 0', color: '#6b7280', fontSize: '14px' }}>
                       <strong>Users:</strong> {pickupPoint.currentUsers}/{pickupPoint.maxCapacity}
                     </p>
-                    <p style={{ margin: 0, color: '#6b7280', fontSize: '14px' }}>
+                    <p style={{ margin: '0 0 8px 0', color: '#6b7280', fontSize: '14px' }}>
                       <strong>Route:</strong> {selectedRoute.name}
                     </p>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onPickupPointClick?.(pickupPoint);
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '8px 12px',
+                        backgroundColor: '#10b981',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '6px',
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        transition: 'background-color 0.2s'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = '#059669';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = '#10b981';
+                      }}
+                    >
+                      👤 Assign Profile
+                    </button>
                   </div>
                 </Popup>
               </Marker>

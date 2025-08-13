@@ -196,10 +196,11 @@ export default function Header({ userPhoto, userName: initialUserName }: { userP
     <header style={{
       width: '100%',
       padding: '0 32px',
-      height: 72,
+      height: 90,
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
+      position: 'relative',
       background: darkMode
         ? `rgba(24, 25, 26, ${scrollOpacity})`
         : `rgba(255, 255, 255, ${scrollOpacity})`,
@@ -273,7 +274,17 @@ export default function Header({ userPhoto, userName: initialUserName }: { userP
         </svg>
       </div>
       {/* Center: Title */}
-      <div style={{ flex: 1, textAlign: 'center', fontWeight: 900, fontSize: 28, letterSpacing: 1, color: darkMode ? '#fff' : '#222' }}>
+      <div style={{
+        position: 'absolute',
+        left: '50%',
+        top: '50%',
+        transform: 'translate(-50%, -50%)',
+        fontWeight: 900,
+        fontSize: 28,
+        letterSpacing: 1,
+        color: darkMode ? '#fff' : '#222',
+        pointerEvents: 'none' // Prevent interference with other elements
+      }}>
         Track-IN-Train HR
       </div>
       {/* Right: User info, photo, dark mode toggle, logout, and logo */}
@@ -360,6 +371,36 @@ export default function Header({ userPhoto, userName: initialUserName }: { userP
                     {getCookie('userRole') || 'User'} • Click for details
                   </div>
                 </button>
+
+                {/* Dashboard option - Only for SuperAdmin and Admin */}
+                {(getCookie('userRole') === 'SuperAdmin' || getCookie('userRole') === 'Admin') && (
+                  <button
+                    onClick={() => {
+                      setShowUserDropdown(false);
+                      router.push('/dashboard');
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '12px 16px',
+                      background: 'none',
+                      border: 'none',
+                      textAlign: 'left',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      color: darkMode ? '#f9fafb' : '#1e293b',
+                      transition: 'background 0.2s ease',
+                      borderBottom: darkMode ? '1px solid #4b5563' : '1px solid #e5e7eb'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = darkMode ? '#374151' : '#f3f4f6';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'none';
+                    }}
+                  >
+                    📊 Dashboard
+                  </button>
+                )}
 
                 <button
                   onClick={() => {
@@ -492,6 +533,9 @@ export default function Header({ userPhoto, userName: initialUserName }: { userP
               padding: window.innerWidth <= 576 ? '20px' : window.innerWidth <= 768 ? '28px' : '32px',
               width: window.innerWidth <= 576 ? 'calc(100vw - 20px)' : '90%',
               maxWidth: window.innerWidth <= 576 ? 'none' : window.innerWidth <= 768 ? '350px' : '400px',
+              maxHeight: '100vh', // Set to 100vh as requested
+              minHeight: '170px', // Set to 170px as requested
+              overflowY: 'auto', // Add scroll if content exceeds height
               boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
               margin: window.innerWidth <= 576 ? '10px' : 'auto'
             }}>
@@ -670,6 +714,9 @@ export default function Header({ userPhoto, userName: initialUserName }: { userP
             padding: '24px',
             width: '90%',
             maxWidth: '400px',
+            maxHeight: '100vh', // Set to 100vh for consistency
+            minHeight: '170px', // Set to 170px for consistency
+            overflowY: 'auto', // Add scroll if content exceeds height
             boxShadow: '0 20px 60px rgba(0,0,0,0.3)'
           }}>
             <div style={{

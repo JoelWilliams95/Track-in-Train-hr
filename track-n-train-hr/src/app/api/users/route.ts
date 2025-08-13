@@ -5,6 +5,68 @@ import { checkServerPermissions } from '@/lib/rbac';
 import { UserService, PersonnelRecordService } from '@/services/database-adapter';
 import { withMiddlewares } from '@/lib/api-middleware';
 
+// GET - Fetch all users (for dashboard and tagging)
+export const GET = withMiddlewares(async (request: NextRequest) => {
+  try {
+    // Check if user is authenticated
+    const cookieStore = await cookies();
+    const userSession = checkServerPermissions(cookieStore);
+
+    if (!userSession) {
+      return NextResponse.json(
+        { success: false, error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
+    console.log('🔍 Users API: Authenticated user', userSession.userName, 'requesting user list');
+
+    // Check if this is a dashboard request (requires Admin/SuperAdmin)
+    const { searchParams } = new URL(request.url);
+    const isDashboardRequest = searchParams.get('dashboard') === 'true';
+
+    if (isDashboardRequest && userSession.userRole !== 'SuperAdmin' && userSession.userRole !== 'Admin') {
+      return NextResponse.json(
+        { success: false, error: 'Insufficient permissions to view users' },
+        { status: 403 }
+      );
+    }
+
+    // Get all users from MongoDB
+    const users = await UserService.getAll();
+
+    // Remove passwords from response
+    const usersWithoutPasswords = users.map((user: any) => {
+      const { password, ...userWithoutPassword } = user.toObject ? user.toObject() : user;
+      return userWithoutPassword;
+    });
+
+    // For dashboard requests, return just users
+    if (isDashboardRequest) {
+      return NextResponse.json({
+        success: true,
+        users: usersWithoutPasswords
+      });
+    }
+
+    // For tagging requests, include personnel records
+    const personnelRecords = await PersonnelRecordService.getAll();
+
+    return NextResponse.json({
+      success: true,
+      users: usersWithoutPasswords,
+      personnelRecords: personnelRecords
+    });
+
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    return NextResponse.json(
+      { success: false, error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}, { rateLimit: { points: 60, duration: 60 } });
+
 export const POST = withMiddlewares(async (request: NextRequest) => {
   try {
     // Check permissions
@@ -88,44 +150,4 @@ export const POST = withMiddlewares(async (request: NextRequest) => {
   }
 }, { rateLimit: { points: 20, duration: 60 } });
 
-export const GET = withMiddlewares(async (request: NextRequest) => {
-  try {
-    // Check if user is authenticated (for tagging functionality, all authenticated users should be able to see user list)
-    const cookieStore = await cookies();
-    const userSession = checkServerPermissions(cookieStore);
 
-    if (!userSession) {
-      return NextResponse.json(
-        { success: false, error: 'Authentication required' },
-        { status: 401 }
-      );
-    }
-
-    console.log('🔍 Users API: Authenticated user', userSession.userName, 'requesting user list');
-
-    // Get all users from MongoDB
-    const users = await UserService.getAll();
-    
-    // Remove passwords from response
-    const usersWithoutPasswords = users.map((user: any) => {
-      const { password, ...userWithoutPassword } = user.toObject();
-      return userWithoutPassword;
-    });
-
-    // Get personnel records for additional user info
-    const personnelRecords = await PersonnelRecordService.getAll();
-
-    return NextResponse.json({
-      success: true,
-      users: usersWithoutPasswords,
-      personnelRecords: personnelRecords
-    });
-
-  } catch (error) {
-    console.error('Error fetching users:', error);
-    return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
-}, { rateLimit: { points: 60, duration: 60 } });

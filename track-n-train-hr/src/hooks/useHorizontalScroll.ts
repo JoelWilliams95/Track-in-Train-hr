@@ -29,41 +29,8 @@ export function useHorizontalScroll() {
     // Initial check
     checkScrollable();
 
-    const handleWheel = (e: WheelEvent) => {
-      // Only enable horizontal scrolling if content actually overflows
-      const hasHorizontalOverflow = checkScrollable();
-
-      if (hasHorizontalOverflow) {
-        // Check if we're scrolling vertically and there's no vertical scroll needed
-        const isVerticalScroll = Math.abs(e.deltaY) > Math.abs(e.deltaX);
-
-        if (isVerticalScroll) {
-          // Check if the page can scroll vertically
-          const canScrollVertically = document.documentElement.scrollHeight > window.innerHeight;
-          const isAtTop = window.scrollY <= 0;
-          const isAtBottom = window.scrollY >= document.documentElement.scrollHeight - window.innerHeight;
-
-          // Only hijack vertical scroll if:
-          // 1. We can't scroll vertically, OR
-          // 2. We're at the top/bottom of the page
-          if (!canScrollVertically || isAtTop || isAtBottom) {
-            e.preventDefault();
-
-            // Convert vertical scroll to horizontal scroll
-            const scrollAmount = e.deltaY;
-            element.scrollLeft += scrollAmount;
-          }
-        } else {
-          // For horizontal scroll, always allow it
-          e.preventDefault();
-          const scrollAmount = e.deltaX || e.deltaY;
-          element.scrollLeft += scrollAmount;
-        }
-      }
-    };
-
-    // Add event listener with passive: false to allow preventDefault
-    element.addEventListener('wheel', handleWheel, { passive: false });
+    // Removed wheel event handling to allow normal vertical scrolling
+    // Users can still scroll horizontally using trackpad gestures, shift+wheel, or touch gestures
 
     // Enhanced touch support for mobile devices
     let touchStartX = 0;
@@ -133,7 +100,6 @@ export function useHorizontalScroll() {
 
     // Cleanup
     return () => {
-      element.removeEventListener('wheel', handleWheel);
       element.removeEventListener('touchstart', handleTouchStart);
       element.removeEventListener('touchmove', handleTouchMove);
       element.removeEventListener('touchend', handleTouchEnd);

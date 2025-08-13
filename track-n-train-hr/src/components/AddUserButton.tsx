@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { COLORS, getColors, BUTTON_COLORS } from '@/lib/colors';
 import { useResponsive } from '@/hooks/useResponsive';
+import { useModal } from '@/contexts/ModalContext';
 
 interface AddUserButtonProps {
   darkMode: boolean;
@@ -21,6 +22,8 @@ export default function AddUserButton({ darkMode }: AddUserButtonProps) {
   const [showModal, setShowModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { isMobile, isTablet } = useResponsive();
+  const { openModal, closeModal, canOpenModal } = useModal();
+  const isDisabled = !canOpenModal();
   const [formData, setFormData] = useState<UserFormData>({
     fullName: '',
     email: '',
@@ -89,6 +92,7 @@ export default function AddUserButton({ darkMode }: AddUserButtonProps) {
         setTimeout(() => {
           setShowModal(false);
           setSuccess('');
+          closeModal('add-user');
           // Use router to navigate to transport routes
           window.location.href = '/transport-routes?newUser=true';
         }, 1500);
@@ -107,15 +111,20 @@ export default function AddUserButton({ darkMode }: AddUserButtonProps) {
     <>
       {/* Floating Add User Button */}
       <button
-        onClick={() => setShowModal(true)}
+        onClick={isDisabled ? undefined : () => {
+          if (openModal('add-user')) {
+            setShowModal(true);
+          }
+        }}
         className="responsive-floating-secondary"
         style={{
           borderRadius: '50%',
-          background: COLORS.GREEN,
+          background: isDisabled ? '#6b7280' : COLORS.GREEN,
           border: 'none',
           color: COLORS.WHITE,
           fontSize: '24px',
-          cursor: 'pointer',
+          cursor: isDisabled ? 'not-allowed' : 'pointer',
+          opacity: isDisabled ? 0.6 : 1,
           boxShadow: `0 4px 20px ${COLORS.GREEN}66`,
           zIndex: 9999,
           display: 'flex',
@@ -156,8 +165,9 @@ export default function AddUserButton({ darkMode }: AddUserButtonProps) {
               borderRadius: window.innerWidth <= 576 ? '12px' : '20px',
               padding: window.innerWidth <= 576 ? '20px' : window.innerWidth <= 768 ? '30px' : '40px',
               width: '100%',
-              maxWidth: window.innerWidth <= 576 ? 'calc(100vw - 20px)' : window.innerWidth <= 768 ? '450px' : '520px',
-              maxHeight: '90vh',
+              maxWidth: window.innerWidth <= 576 ? 'calc(100vw - 20px)' : window.innerWidth <= 768 ? '500px' : '600px',
+              maxHeight: '100vh', // Set to 100vh as requested
+              minHeight: '170px', // Set to 170px as requested
               overflowY: 'auto',
               boxShadow: darkMode
                 ? '0 25px 80px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.1)'
@@ -195,7 +205,10 @@ export default function AddUserButton({ darkMode }: AddUserButtonProps) {
                 </p>
               </div>
               <button
-                onClick={() => setShowModal(false)}
+                onClick={() => {
+                  setShowModal(false);
+                  closeModal('add-user');
+                }}
                 style={{
                   background: darkMode ? COLORS.ULTIMATE_GREY : '#f3f4f6',
                   border: `1px solid ${darkMode ? '#4b5563' : '#d1d5db'}`,
@@ -234,7 +247,7 @@ export default function AddUserButton({ darkMode }: AddUserButtonProps) {
               <div>
                 <label style={{
                   display: 'block',
-                  fontSize: '14px',
+                  fontSize: '16px',
                   fontWeight: '600',
                   color: darkMode ? '#f1f5f9' : '#374151',
                   marginBottom: '8px'
@@ -276,7 +289,7 @@ export default function AddUserButton({ darkMode }: AddUserButtonProps) {
               <div>
                 <label style={{
                   display: 'block',
-                  fontSize: '14px',
+                  fontSize: '16px',
                   fontWeight: '600',
                   color: darkMode ? '#f1f5f9' : '#374151',
                   marginBottom: '8px'
@@ -318,7 +331,7 @@ export default function AddUserButton({ darkMode }: AddUserButtonProps) {
               <div>
                 <label style={{
                   display: 'block',
-                  fontSize: '14px',
+                  fontSize: '16px',
                   fontWeight: '600',
                   color: darkMode ? '#f1f5f9' : '#374151',
                   marginBottom: '8px'
@@ -360,7 +373,7 @@ export default function AddUserButton({ darkMode }: AddUserButtonProps) {
               <div>
                 <label style={{
                   display: 'block',
-                  fontSize: '14px',
+                  fontSize: '16px',
                   fontWeight: '600',
                   color: darkMode ? '#f1f5f9' : '#374151',
                   marginBottom: '8px'
@@ -406,7 +419,7 @@ export default function AddUserButton({ darkMode }: AddUserButtonProps) {
               <div>
                 <label style={{
                   display: 'block',
-                  fontSize: '14px',
+                  fontSize: '16px',
                   fontWeight: '600',
                   color: darkMode ? '#f1f5f9' : '#374151',
                   marginBottom: '8px'
@@ -449,7 +462,7 @@ export default function AddUserButton({ darkMode }: AddUserButtonProps) {
               <div>
                 <label style={{
                   display: 'block',
-                  fontSize: '14px',
+                  fontSize: '16px',
                   fontWeight: '600',
                   color: darkMode ? '#f1f5f9' : '#374151',
                   marginBottom: '8px'
@@ -490,7 +503,7 @@ export default function AddUserButton({ darkMode }: AddUserButtonProps) {
               <div>
                 <label style={{
                   display: 'block',
-                  fontSize: '14px',
+                  fontSize: '16px',
                   fontWeight: '600',
                   color: darkMode ? '#f1f5f9' : '#374151',
                   marginBottom: '8px'

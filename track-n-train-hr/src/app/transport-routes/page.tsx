@@ -12,6 +12,7 @@ import {
 } from '@/lib/leaflet-maps';
 import { TransportRoute, PickupPoint } from '@/models';
 import { RELATS } from '@/lib/locations';
+import ProfileAssignmentModal from '@/components/ProfileAssignmentModal';
 
 // Cookie utility function
 function getCookie(name: string): string | null {
@@ -41,6 +42,9 @@ export default function TransportRoutesPage() {
   const [selectedRoute, setSelectedRoute] = useState<TransportRoute | null>(null);
   const [routes, setRoutes] = useState<TransportRoute[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedPickupPoint, setSelectedPickupPoint] = useState<PickupPoint | null>(null);
+  const [allUsers, setAllUsers] = useState<any[]>([]);
+  const [showAssignmentModal, setShowAssignmentModal] = useState(false);
 
   const colors = getColors(darkMode);
 
@@ -56,42 +60,54 @@ export default function TransportRoutesPage() {
           name: 'Place de France',
           location: { lat: 35.7595, lng: -5.8340, address: 'Place de France, Tangier, Morocco' },
           currentUsers: 14,
-          maxCapacity: 22
+          maxCapacity: 22,
+          trajectoryCode: 'TNG-PF-001',
+          assignedUsers: []
         },
         {
           id: 'pickup-1-2',
           name: 'Boulevard Pasteur',
           location: { lat: 35.7612, lng: -5.8298, address: 'Boulevard Pasteur, Tangier, Morocco' },
           currentUsers: 9,
-          maxCapacity: 16
+          maxCapacity: 16,
+          trajectoryCode: 'TNG-BP-002',
+          assignedUsers: []
         },
         {
           id: 'pickup-1-3',
           name: 'Grand Socco',
           location: { lat: 35.7831, lng: -5.8136, address: 'Grand Socco (Place du 9 Avril), Tangier, Morocco' },
           currentUsers: 11,
-          maxCapacity: 18
+          maxCapacity: 18,
+          trajectoryCode: 'TNG-GS-003',
+          assignedUsers: []
         },
         {
           id: 'pickup-1-4',
           name: 'Port of Tangier',
           location: { lat: 35.7731, lng: -5.8006, address: 'Port of Tangier, Tangier, Morocco' },
           currentUsers: 8,
-          maxCapacity: 15
+          maxCapacity: 15,
+          trajectoryCode: 'TNG-PT-004',
+          assignedUsers: []
         },
         {
           id: 'pickup-1-5',
           name: 'Tangier Med Entrance',
           location: { lat: 35.7220, lng: -5.8850, address: 'Tangier Med Port Entrance, Tangier, Morocco' },
           currentUsers: 7,
-          maxCapacity: 12
+          maxCapacity: 12,
+          trajectoryCode: 'TNG-TME-005',
+          assignedUsers: []
         },
         {
           id: 'pickup-1-6',
           name: 'Free Zone Access Road',
           location: { lat: 35.7150, lng: -5.9100, address: 'Tanger Free Zone Access Road, Tangier, Morocco' },
           currentUsers: 5,
-          maxCapacity: 10
+          maxCapacity: 10,
+          trajectoryCode: 'TNG-FZ-006',
+          assignedUsers: []
         }
       ],
       endPoint: RELATS,
@@ -270,6 +286,86 @@ export default function TransportRoutesPage() {
   const [showNewUserBanner, setShowNewUserBanner] = useState(false);
   const [windowWidth, setWindowWidth] = useState(1024); // Default width for SSR
 
+  // Fetch all users for pickup point management
+  const fetchAllUsers = async () => {
+    try {
+      const response = await fetch('/api/personnel-records');
+      if (response.ok) {
+        const users = await response.json();
+        // Filter out invalid users and ensure all have required fields
+        const validUsers = users.filter((user: any) =>
+          user &&
+          user.fullName &&
+          typeof user.fullName === 'string' &&
+          user.fullName.trim() !== ''
+        );
+        setAllUsers(validUsers);
+      }
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    }
+  };
+
+  // Handle pickup point click
+  const handlePickupPointClick = (pickupPoint: PickupPoint) => {
+    setSelectedPickupPoint(pickupPoint);
+    setShowAssignmentModal(true);
+  };
+
+  // Handle profile assignment
+  const handleAssignProfile = async (user: any, pickupPoint: PickupPoint) => {
+    // Validate input data
+    if (!user || !user.fullName || !pickupPoint) {
+      throw new Error('Invalid user or pickup point data');
+    }
+
+    try {
+      // Update user's trajectory code
+      const response = await fetch('/api/personnel-records', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fullName: user.fullName,
+          trajectoryCode: pickupPoint.trajectoryCode || `${pickupPoint.id.toUpperCase()}`
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update user trajectory code');
+      }
+
+      // Update local state
+      setRoutes(prevRoutes =>
+        prevRoutes.map(route => ({
+          ...route,
+          pickupPoints: route.pickupPoints.map(point =>
+            point.id === pickupPoint.id
+              ? { ...point, currentUsers: point.currentUsers + 1 }
+              : point
+          )
+        }))
+      );
+
+      // Refresh users list
+      await fetchAllUsers();
+
+      // Success will be handled by the modal component
+    } catch (error) {
+      console.error('Error assigning profile:', error);
+
+      // Extract specific error message
+      let errorMessage = 'Failed to assign profile. Please try again.';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+
+      // Throw the error with the message for the modal to handle
+      throw new Error(errorMessage);
+    }
+  };
+
   useEffect(() => {
     // Check dark mode preference from multiple sources
     const cookieDark = getCookie('darkMode') === 'true';
@@ -325,6 +421,10 @@ export default function TransportRoutesPage() {
     
     // Load routes (mock data for now)
     setRoutes(mockTransportRoutes);
+
+    // Fetch all users for pickup point management
+    fetchAllUsers();
+
     setLoading(false);
     
     // Set initial window width and add resize listener
@@ -710,6 +810,7 @@ export default function TransportRoutesPage() {
               selectedRoute={selectedRoute}
               darkMode={darkMode}
               onRouteSelect={handleRouteSelect}
+              onPickupPointClick={handlePickupPointClick}
             />
           </div>
 
@@ -831,6 +932,20 @@ export default function TransportRoutesPage() {
           © 2025 Track-IN-Train HR - Transport Route Management System
         </div>
       </footer>
+
+      {/* Profile Assignment Modal */}
+      {showAssignmentModal && selectedPickupPoint && (
+        <ProfileAssignmentModal
+          darkMode={darkMode}
+          onClose={() => {
+            setShowAssignmentModal(false);
+            setSelectedPickupPoint(null);
+          }}
+          pickupPoint={selectedPickupPoint}
+          allUsers={allUsers}
+          onAssignProfile={handleAssignProfile}
+        />
+      )}
     </div>
   );
 }

@@ -4,6 +4,7 @@ import "./globals.css";
 import Header from '@/components/Header';
 import ThemeProviderClient from '@/components/ThemeProviderClient';
 import Footer from '@/components/Footer';
+import { ModalProvider } from '@/contexts/ModalContext';
 import { cookies } from 'next/headers';
 
 const geistSans = Geist({
@@ -37,9 +38,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang="en" suppressHydrationWarning>
       <body style={{ margin: 0, padding: 0, minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
         <ThemeProviderClient>
-          <Header userPhoto={userPhoto} userName={userName} />
-          <div style={{ flex: 1 }}>{children}</div>
-          <Footer />
+          <ModalProvider>
+            <Header userPhoto={userPhoto} userName={userName} />
+            <div style={{ flex: 1 }}>{children}</div>
+            <Footer />
+          </ModalProvider>
         </ThemeProviderClient>
 
         {/* Script to completely hide all dev tools and indicators */}

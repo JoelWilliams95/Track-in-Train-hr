@@ -140,6 +140,11 @@ export class UserService {
     return await User.findOne({ fullName });
   }
 
+  static async getById(id: string): Promise<IUser | null> {
+    await connectToMongoose();
+    return await User.findById(id);
+  }
+
   static async create(data: Partial<IUser>): Promise<IUser> {
     await connectToMongoose();
     const user = new User(data);
@@ -153,6 +158,21 @@ export class UserService {
       { $set: data },
       { new: true }
     );
+  }
+
+  static async updateById(id: string, data: Partial<IUser>): Promise<IUser | null> {
+    await connectToMongoose();
+    return await User.findByIdAndUpdate(
+      id,
+      { $set: data },
+      { new: true }
+    );
+  }
+
+  static async deleteById(id: string): Promise<boolean> {
+    await connectToMongoose();
+    const result = await User.findByIdAndDelete(id);
+    return !!result;
   }
 
   static async updateLastLogin(email: string): Promise<IUser | null> {

@@ -68,11 +68,12 @@ export const POST = withMiddlewares(async (request: NextRequest) => {
 
     // Set permissions based on role (handle both SuperAdmin variations)
     const isSuperAdmin = normalizedRole === 'SuperAdmin' || normalizedRole === 'Super Admin';
+    const isAdmin = normalizedRole === 'Admin';
     const permissions = {
-      canAddUsers: isSuperAdmin,
-      canAddProfiles: isSuperAdmin,
-      canViewAllProfiles: isSuperAdmin,
-      canManageSystem: isSuperAdmin
+      canAddUsers: isSuperAdmin || isAdmin,
+      canAddProfiles: isSuperAdmin || isAdmin,
+      canViewAllProfiles: isSuperAdmin || isAdmin,
+      canManageSystem: isSuperAdmin || isAdmin
     };
 
     cookieStore.set("userRole", normalizedRole, {

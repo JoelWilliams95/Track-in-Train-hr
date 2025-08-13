@@ -279,6 +279,15 @@ export class UserService {
     return await MongoService.getByFullName(fullName);
   }
 
+  static async getById(id: string) {
+    if (DATABASE_TYPE === 'json') {
+      const users = readJsonFile(USERS_FILE);
+      return users.find((user: any) => user.id === id) || null;
+    }
+    const { UserService: MongoService } = await import('./database');
+    return await MongoService.getById(id);
+  }
+
   static async create(data: any) {
     if (DATABASE_TYPE === 'json') {
       const users = readJsonFile(USERS_FILE);
@@ -294,6 +303,36 @@ export class UserService {
     }
     const { UserService: MongoService } = await import('./database');
     return await MongoService.create(data);
+  }
+
+  static async updateById(id: string, data: any) {
+    if (DATABASE_TYPE === 'json') {
+      const users = readJsonFile(USERS_FILE);
+      const index = users.findIndex((user: any) => user.id === id);
+      if (index !== -1) {
+        users[index] = { ...users[index], ...data, updatedAt: new Date().toISOString() };
+        writeJsonFile(USERS_FILE, users);
+        return users[index];
+      }
+      return null;
+    }
+    const { UserService: MongoService } = await import('./database');
+    return await MongoService.updateById(id, data);
+  }
+
+  static async deleteById(id: string) {
+    if (DATABASE_TYPE === 'json') {
+      const users = readJsonFile(USERS_FILE);
+      const index = users.findIndex((user: any) => user.id === id);
+      if (index !== -1) {
+        users.splice(index, 1);
+        writeJsonFile(USERS_FILE, users);
+        return true;
+      }
+      return false;
+    }
+    const { UserService: MongoService } = await import('./database');
+    return await MongoService.deleteById(id);
   }
 
   static async updateLastLogin(email: string) {

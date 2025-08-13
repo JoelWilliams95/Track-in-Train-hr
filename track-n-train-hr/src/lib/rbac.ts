@@ -95,14 +95,28 @@ export function isSuperAdmin(): boolean {
   return session?.userRole === 'SuperAdmin' || false;
 }
 
+// Check if user is Admin
+export function isAdmin(): boolean {
+  if (typeof window === 'undefined') return false;
+  const session = getCurrentUserSession();
+  return session?.userRole === 'Admin' || false;
+}
+
+// Check if user is SuperAdmin or Admin
+export function isSuperAdminOrAdmin(): boolean {
+  if (typeof window === 'undefined') return false;
+  const session = getCurrentUserSession();
+  return session?.userRole === 'SuperAdmin' || session?.userRole === 'Admin' || false;
+}
+
 // Filter profiles based on user permissions and zone
 export function filterProfilesByAccess(profiles: any[]): any[] {
   if (typeof window === 'undefined') return profiles; // Return all profiles on server-side
   const session = getCurrentUserSession();
   if (!session) return [];
 
-  // SuperAdmin can see all profiles
-  if (session.permissions.canViewAllProfiles || session.userRole === 'SuperAdmin') {
+  // SuperAdmin and Admin can see all profiles
+  if (session.permissions.canViewAllProfiles || session.userRole === 'SuperAdmin' || session.userRole === 'Admin') {
     return profiles;
   }
 
