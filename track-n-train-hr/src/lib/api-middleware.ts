@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { ErrorHandler, ApiError } from './error-handler'
 
 // Simple in-memory rate limiter per IP+route+method
 // Note: Suitable for dev/small deployments. For production, consider Redis/Upstash.
@@ -14,6 +15,12 @@ export interface RateLimitOptions {
 export interface MiddlewareOptions {
   rateLimit?: RateLimitOptions
   log?: boolean
+  cors?: {
+    origin?: string | string[]
+    methods?: string[]
+    headers?: string[]
+  }
+  validateContentType?: string[]
 }
 
 function getClientIp(req: NextRequest) {
@@ -40,7 +47,13 @@ export function withLogging(handler: Handler): Handler {
     } catch (err) {
       const ms = Date.now() - start
       console.error(`[api] ${id} 500 - ${ms}ms - ip=${ip} - error=`, err)
-      return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
+      
+      // Use the centralized error handler
+      const errorResponse = ErrorHandler.createErrorResponse(err)
+      return NextResponse.json(
+        { success: errorResponse.success, error: errorResponse.error },
+        { status: errorResponse.statusCode }
+      )
     }
   }
 }

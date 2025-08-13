@@ -7,6 +7,12 @@ export interface TransportRoute {
   totalUsers: number;
   route: import('../lib/leaflet-maps').Location[];
   routeGeometry?: any;
+  // Color-coding properties
+  maxCapacity?: number;
+  efficiency?: 'high' | 'medium' | 'low';
+  operationalStatus?: 'active' | 'delayed' | 'maintenance' | 'cancelled';
+  priority?: 'critical' | 'high' | 'medium' | 'low';
+  routeType?: 'express' | 'standard' | 'local';
 }
 
 export interface PickupPoint {
@@ -17,6 +23,9 @@ export interface PickupPoint {
   maxCapacity: number;
   trajectoryCode?: string;
   assignedUsers?: any[];
+  // Color-coding properties
+  utilization?: 'full' | 'high' | 'medium' | 'low' | 'empty';
+  accessibilityLevel?: 'excellent' | 'good' | 'fair' | 'poor';
 }
 
 export interface EmployeeProfile {

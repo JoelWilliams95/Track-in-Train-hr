@@ -25,6 +25,7 @@ import {
   OpenRouteService
 } from '@/lib/leaflet-maps';
 import { RELATS } from '@/lib/locations';
+import TransportColorCoding from '@/lib/color-coding';
 
 // Import Leaflet CSS only on client
 if (typeof window !== 'undefined') {
@@ -43,10 +44,12 @@ if (typeof window !== 'undefined' && L) {
 
 interface TransportMapProps {
   selectedRoute: TransportRoute | null;
+  hoveredRoute?: TransportRoute | null;
   darkMode: boolean;
   onRouteSelect?: (route: TransportRoute) => void;
   onPickupPointSelect?: (pickupPoint: PickupPoint) => void;
   onPickupPointClick?: (pickupPoint: PickupPoint) => void;
+  onAssignProfileClick?: (pickupPoint: PickupPoint) => void;
   newUserMode?: boolean;
   newUserData?: {
     fullName: string;
@@ -226,10 +229,12 @@ function POIMarkers() {
 
 export default function TransportMap({
   selectedRoute,
+  hoveredRoute,
   darkMode,
   onRouteSelect,
   onPickupPointSelect,
   onPickupPointClick,
+  onAssignProfileClick,
   newUserMode = false,
   newUserData,
   onUserAssigned
@@ -268,7 +273,7 @@ export default function TransportMap({
   useEffect(() => {
     // Force map re-render when dark mode changes
     setMapKey(prev => prev + 1);
-  }, [darkMode]);
+  }, [darkMode, selectedRoute?.id]);
 
   useEffect(() => {
     const loadRouteGeometry = async () => {
@@ -583,6 +588,106 @@ export default function TransportMap({
           </Marker>
         )}
 
+        {/* Hovered Route Visualization (if different from selected route) */}
+        {hoveredRoute && hoveredRoute.id !== selectedRoute?.id && (
+          <>
+            {/* Hovered Route - Subtle visualization */}
+            <Polyline
+              key={`hovered-route-${hoveredRoute.id}`}
+              positions={[
+                [hoveredRoute.startPoint.lat, hoveredRoute.startPoint.lng],
+                ...hoveredRoute.pickupPoints.map(pp => [pp.location.lat, pp.location.lng] as [number, number]),
+                [hoveredRoute.endPoint.lat, hoveredRoute.endPoint.lng]
+              ]}
+              color={TransportColorCoding.getMapColor(hoveredRoute, darkMode).hover}
+              weight={3}
+              opacity={0.6}
+              dashArray="8, 6"
+              lineCap="round"
+              lineJoin="round"
+            />
+            
+            {/* Hovered Route Markers - Smaller and translucent */}
+            <Marker
+              position={[hoveredRoute.startPoint.lat, hoveredRoute.startPoint.lng]}
+              icon={L.divIcon({
+                html: `<div style="background: ${TransportColorCoding.getMapColor(hoveredRoute, darkMode).hover}CC; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 14px; box-shadow: 0 2px 6px ${TransportColorCoding.getMapColor(hoveredRoute, darkMode).main}4D; border: 2px solid white;">🚌</div>`,
+                className: 'custom-marker hovered-marker',
+                iconSize: [24, 24],
+                iconAnchor: [12, 24]
+              })}
+            >
+              <Popup>
+                <div style={{ padding: '6px', minWidth: '180px' }}>
+                  <h4 style={{ margin: '0 0 6px 0', color: TransportColorCoding.getMapColor(hoveredRoute, darkMode).main, fontSize: '14px', fontWeight: '600' }}>
+                    {TransportColorCoding.getRouteColorInfo(hoveredRoute, darkMode).indicator} {hoveredRoute.name} (Hovered)
+                  </h4>
+                  <p style={{ margin: '0 0 4px 0', color: '#6b7280', fontSize: '12px' }}>
+                    <strong>Start:</strong> {hoveredRoute.startPoint.address}
+                  </p>
+                  <p style={{ margin: '0', color: TransportColorCoding.getRouteColorInfo(hoveredRoute, darkMode).color.text, fontSize: '11px', fontWeight: '600' }}>
+                    {TransportColorCoding.getRouteColorInfo(hoveredRoute, darkMode).status}
+                  </p>
+                </div>
+              </Popup>
+            </Marker>
+            
+            {hoveredRoute.pickupPoints.map((pickupPoint, index) => {
+              const pickupColor = TransportColorCoding.getPickupPointColorInfo(pickupPoint, darkMode);
+              return (
+              <Marker
+                key={`hovered-pickup-${pickupPoint.id}`}
+                position={[pickupPoint.location.lat, pickupPoint.location.lng]}
+                icon={L.divIcon({
+                  html: `<div style="background: ${pickupColor.color.primary}CC; color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 12px; box-shadow: 0 2px 4px ${pickupColor.color.primary}4D; border: 2px solid white;">${pickupColor.indicator}</div>`,
+                  className: 'custom-marker hovered-marker',
+                  iconSize: [20, 20],
+                  iconAnchor: [10, 20]
+                })}
+              >
+                <Popup>
+                  <div style={{ padding: '6px', minWidth: '160px' }}>
+                    <h4 style={{ margin: '0 0 4px 0', color: pickupColor.color.primary, fontSize: '13px', fontWeight: '600' }}>
+                      {pickupPoint.name} (Hovered)
+                    </h4>
+                    <p style={{ margin: '0 0 4px 0', color: '#6b7280', fontSize: '11px' }}>
+                      {pickupPoint.location.address}
+                    </p>
+                    <p style={{ margin: '0', color: pickupColor.color.text, fontSize: '10px', fontWeight: '600' }}>
+                      {pickupColor.status}
+                    </p>
+                  </div>
+                </Popup>
+              </Marker>
+            );
+            })}
+            
+            <Marker
+              position={[hoveredRoute.endPoint.lat, hoveredRoute.endPoint.lng]}
+              icon={L.divIcon({
+                html: `<div style="background: ${TransportColorCoding.getMapColor(hoveredRoute, darkMode).hover}CC; color: white; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 16px; box-shadow: 0 2px 8px ${TransportColorCoding.getMapColor(hoveredRoute, darkMode).main}4D; border: 2px solid white;">🏢</div>`,
+                className: 'custom-marker hovered-marker',
+                iconSize: [28, 28],
+                iconAnchor: [14, 28]
+              })}
+            >
+              <Popup>
+                <div style={{ padding: '6px', minWidth: '180px' }}>
+                  <h4 style={{ margin: '0 0 4px 0', color: TransportColorCoding.getMapColor(hoveredRoute, darkMode).main, fontSize: '14px', fontWeight: '600' }}>
+                    🏢 {hoveredRoute.name} Destination
+                  </h4>
+                  <p style={{ margin: '0 0 4px 0', color: '#6b7280', fontSize: '12px' }}>
+                    {hoveredRoute.endPoint.address}
+                  </p>
+                  <p style={{ margin: '0', color: TransportColorCoding.getRouteColorInfo(hoveredRoute, darkMode).color.text, fontSize: '11px', fontWeight: '600' }}>
+                    {TransportColorCoding.getRouteColorInfo(hoveredRoute, darkMode).status}
+                  </p>
+                </div>
+              </Popup>
+            </Marker>
+          </>
+        )}
+
         {selectedRoute && (
           <>
             {/* Start Point Marker (Shuttle Depot) */}
@@ -632,7 +737,7 @@ export default function TransportMap({
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        onPickupPointClick?.(pickupPoint);
+                        onAssignProfileClick?.(pickupPoint);
                       }}
                       style={{
                         width: '100%',
@@ -688,9 +793,11 @@ export default function TransportMap({
                   key={`route-geojson-${selectedRoute.id}`}
                   data={routeGeometry}
                   style={{
-                    color: darkMode ? '#60a5fa' : '#2563eb',
-                    weight: 6,
-                    opacity: 0.9,
+                    color: hoveredRoute?.id === selectedRoute.id 
+                      ? TransportColorCoding.getMapColor(selectedRoute, darkMode).selected
+                      : TransportColorCoding.getMapColor(selectedRoute, darkMode).main,
+                    weight: hoveredRoute?.id === selectedRoute.id ? 8 : 6,
+                    opacity: hoveredRoute?.id === selectedRoute.id ? 1.0 : 0.9,
                     lineCap: 'round',
                     lineJoin: 'round'
                   }}
@@ -737,9 +844,12 @@ export default function TransportMap({
                     ...selectedRoute.pickupPoints.map(pp => [pp.location.lat, pp.location.lng] as [number, number]),
                     [selectedRoute.endPoint.lat, selectedRoute.endPoint.lng]
                   ]}
-                  color={darkMode ? '#fbbf24' : '#f59e0b'}
-                  weight={4}
-                  opacity={0.7}
+                  color={hoveredRoute?.id === selectedRoute.id 
+                    ? TransportColorCoding.getMapColor(selectedRoute, darkMode).selected
+                    : TransportColorCoding.getMapColor(selectedRoute, darkMode).main
+                  }
+                  weight={hoveredRoute?.id === selectedRoute.id ? 6 : 4}
+                  opacity={hoveredRoute?.id === selectedRoute.id ? 0.9 : 0.7}
                   dashArray="10, 8"
                   lineCap="round"
                   lineJoin="round"
@@ -1009,6 +1119,15 @@ export default function TransportMap({
           font-size: 24px;
           text-align: center;
           line-height: 30px;
+        }
+        
+        .hovered-marker {
+          z-index: 999;
+          transition: all 0.3s ease;
+        }
+        
+        .hovered-marker:hover {
+          transform: scale(1.1);
         }
         
         .custom-popup .leaflet-popup-content-wrapper {

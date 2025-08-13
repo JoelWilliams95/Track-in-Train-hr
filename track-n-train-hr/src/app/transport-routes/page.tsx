@@ -45,6 +45,7 @@ export default function TransportRoutesPage() {
   const [selectedPickupPoint, setSelectedPickupPoint] = useState<PickupPoint | null>(null);
   const [allUsers, setAllUsers] = useState<any[]>([]);
   const [showAssignmentModal, setShowAssignmentModal] = useState(false);
+  const [hoveredRoute, setHoveredRoute] = useState<TransportRoute | null>(null);
 
   const colors = getColors(darkMode);
 
@@ -306,10 +307,26 @@ export default function TransportRoutesPage() {
     }
   };
 
-  // Handle pickup point click
+  // Handle pickup point marker click (now only selects the pickup point, no modal)
   const handlePickupPointClick = (pickupPoint: PickupPoint) => {
+    console.log('🔍 handlePickupPointClick called with:', pickupPoint.name);
+    setSelectedPickupPoint(pickupPoint);
+    // Don't open modal automatically - only when button is clicked
+  };
+
+  // Handle assign profile button click (opens modal)
+  const handleAssignProfileClick = (pickupPoint: PickupPoint) => {
+    console.log('🔍 handleAssignProfileClick called with:', pickupPoint.name);
     setSelectedPickupPoint(pickupPoint);
     setShowAssignmentModal(true);
+    console.log('✅ Modal should open now');
+  };
+
+  // Handle assign new profile button click
+  const handleAssignNewProfile = () => {
+    if (selectedPickupPoint) {
+      setShowAssignmentModal(true);
+    }
   };
 
   // Handle profile assignment
@@ -711,6 +728,7 @@ export default function TransportRoutesPage() {
                       : '0 2px 4px rgba(0,0,0,0.05)'
                   }}
                   onMouseEnter={(e) => {
+                    setHoveredRoute(route);
                     if (selectedRoute?.id !== route.id) {
                       e.currentTarget.style.backgroundColor = darkMode ? '#4b5563' : '#f1f5f9';
                       e.currentTarget.style.transform = 'translateY(-2px)';
@@ -718,6 +736,7 @@ export default function TransportRoutesPage() {
                     }
                   }}
                   onMouseLeave={(e) => {
+                    setHoveredRoute(null);
                     if (selectedRoute?.id !== route.id) {
                       e.currentTarget.style.backgroundColor = darkMode ? '#374151' : '#f8fafc';
                       e.currentTarget.style.transform = 'translateY(0)';
@@ -808,9 +827,11 @@ export default function TransportRoutesPage() {
           }}>
             <TransportMap
               selectedRoute={selectedRoute}
+              hoveredRoute={hoveredRoute}
               darkMode={darkMode}
               onRouteSelect={handleRouteSelect}
               onPickupPointClick={handlePickupPointClick}
+              onAssignProfileClick={handleAssignProfileClick}
             />
           </div>
 

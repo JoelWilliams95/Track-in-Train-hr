@@ -5,6 +5,7 @@ import Header from '@/components/Header';
 import ThemeProviderClient from '@/components/ThemeProviderClient';
 import Footer from '@/components/Footer';
 import { ModalProvider } from '@/contexts/ModalContext';
+import ErrorBoundary from '@/components/ErrorBoundary';
 import { cookies } from 'next/headers';
 
 const geistSans = Geist({
@@ -39,9 +40,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body style={{ margin: 0, padding: 0, minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
         <ThemeProviderClient>
           <ModalProvider>
-            <Header userPhoto={userPhoto} userName={userName} />
-            <div style={{ flex: 1 }}>{children}</div>
-            <Footer />
+            <ErrorBoundary>
+              <Header userPhoto={userPhoto} userName={userName} />
+              <div style={{ flex: 1 }}>{children}</div>
+              <Footer />
+            </ErrorBoundary>
           </ModalProvider>
         </ThemeProviderClient>
 
