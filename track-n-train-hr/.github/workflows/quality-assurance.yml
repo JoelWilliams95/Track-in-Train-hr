@@ -1,0 +1,338 @@
+name: Quality Assurance
+
+on:
+  push:
+    branches: [ main, develop, 'feature/*' ]
+  pull_request:
+    branches: [ main, develop ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '20.x'
+  DATABASE_TYPE: 'json'
+  NODE_ENV: 'test'
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      cache-hit: ${{ steps.cache.outputs.cache-hit }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Cache dependencies
+        id: cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.npm
+            node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: npm ci --prefer-offline --no-audit
+
+  lint-and-format:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Restore dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.npm
+            node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Lint code
+        run: npm run lint
+
+      - name: Check code formatting
+        run: npm run format -- --check
+
+      - name: Type check
+        run: npm run typecheck
+
+  test:
+    needs: setup
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        test-group: ['unit', 'integration']
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Restore dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.npm
+            node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Run unit tests
+        if: matrix.test-group == 'unit'
+        run: npm run test:ci -- --testPathIgnorePatterns=integration
+
+      - name: Run integration tests
+        if: matrix.test-group == 'integration'
+        run: npm run test:ci -- --testPathPattern=integration
+        continue-on-error: true
+
+      - name: Upload coverage
+        if: matrix.test-group == 'unit'
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage/lcov.info
+          fail_ci_if_error: true
+
+  build:
+    needs: [lint-and-format, test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Restore dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.npm
+            node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Build application
+        run: npm run build
+
+      - name: Archive build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-${{ github.sha }}
+          path: |
+            .next/
+            public/
+          retention-days: 7
+
+  security-audit:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Restore dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.npm
+            node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Run security audit
+        run: npm audit --audit-level=moderate
+
+      - name: Run dependency vulnerability check
+        run: |
+          npm audit --audit-level=high --production || exit 0
+          echo "Security audit completed with warnings"
+
+  performance-test:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: build-${{ github.sha }}
+
+      - name: Restore dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.npm
+            node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Setup test data
+        run: node scripts/setup.js
+
+      - name: Start application
+        run: |
+          npm start &
+          sleep 15
+        env:
+          PORT: 3000
+
+      - name: Run performance tests
+        run: |
+          npm install -g lighthouse
+          lighthouse http://localhost:3000 --output=json --output-path=./lighthouse-results.json --chrome-flags="--headless --no-sandbox"
+        continue-on-error: true
+
+      - name: Upload Lighthouse results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: lighthouse-results-${{ github.sha }}
+          path: lighthouse-results.json
+
+  accessibility-test:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: build-${{ github.sha }}
+
+      - name: Restore dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.npm
+            node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Setup test data
+        run: node scripts/setup.js
+
+      - name: Start application
+        run: |
+          npm start &
+          sleep 15
+        env:
+          PORT: 3000
+
+      - name: Run accessibility tests
+        run: |
+          npx @axe-core/cli http://localhost:3000 --exit || echo "Accessibility issues found"
+        continue-on-error: true
+
+  bundle-analysis:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: build-${{ github.sha }}
+
+      - name: Analyze bundle size
+        run: |
+          npm install -g @next/bundle-analyzer
+          ANALYZE=true npm run build
+        continue-on-error: true
+
+  cleanup:
+    needs: [build, security-audit, performance-test, accessibility-test]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Clean up artifacts
+        uses: actions/delete-artifact@v2
+        with:
+          name: build-${{ github.sha }}
+        continue-on-error: true
+
+  status-check:
+    needs: [lint-and-format, test, build, security-audit]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Check job statuses
+        run: |
+          if [[ "${{ needs.lint-and-format.result }}" == "failure" || "${{ needs.test.result }}" == "failure" || "${{ needs.build.result }}" == "failure" || "${{ needs.security-audit.result }}" == "failure" ]]; then
+            echo "One or more critical jobs failed"
+            exit 1
+          else
+            echo "All critical jobs passed successfully"
+          fi

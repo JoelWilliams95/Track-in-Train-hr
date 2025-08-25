@@ -5,7 +5,7 @@ import { ErrorHandler, ApiError } from './error-handler'
 // Note: Suitable for dev/small deployments. For production, consider Redis/Upstash.
 const buckets = new Map<string, { count: number; resetAt: number }>()
 
-export type Handler = (req: NextRequest) => Promise<NextResponse> | NextResponse
+export type Handler = (req: NextRequest, context?: any) => Promise<NextResponse> | NextResponse
 
 export interface RateLimitOptions {
   points?: number // max requests in window
@@ -31,13 +31,13 @@ function getClientIp(req: NextRequest) {
 }
 
 export function withLogging(handler: Handler): Handler {
-  return async (req: NextRequest) => {
+  return async (req: NextRequest, context?: any) => {
     const start = Date.now()
     const ip = getClientIp(req)
     const id = `${req.method} ${new URL(req.url).pathname}`
 
     try {
-      const res = await handler(req)
+      const res = await handler(req, context)
       const ms = Date.now() - start
       if (process.env.NODE_ENV !== 'production') {
         // Keep logs quieter in prod by default
@@ -62,7 +62,7 @@ export function withRateLimit(handler: Handler, opts: RateLimitOptions = {}): Ha
   const points = Math.max(1, opts.points ?? 30)
   const duration = Math.max(1, opts.duration ?? 60) // seconds
 
-  return async (req: NextRequest) => {
+  return async (req: NextRequest, context?: any) => {
     const ip = getClientIp(req)
     const pathname = new URL(req.url).pathname
     const bucketKey = `${ip}:${pathname}:${req.method}`
@@ -89,7 +89,7 @@ export function withRateLimit(handler: Handler, opts: RateLimitOptions = {}): Ha
       entry.count += 1
     }
 
-    return handler(req)
+    return handler(req, context)
   }
 }
 

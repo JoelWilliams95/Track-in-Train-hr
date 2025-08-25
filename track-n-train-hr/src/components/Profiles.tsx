@@ -1421,7 +1421,7 @@ export default function Profiles({ users, darkMode = false }: { users: User[]; d
         const isInSameZone = user.zone === currentUserZone;
 
         // Check if user has reached at least "in-training" status
-        const userStatusLower = user.status.toLowerCase();
+        const userStatusLower = (user.status || '').toLowerCase();
         const hasValidStatus = allowedStatuses.some(status =>
           userStatusLower.includes(status) || userStatusLower === status
         );
@@ -1449,29 +1449,29 @@ export default function Profiles({ users, darkMode = false }: { users: User[]; d
       switch (searchBy) {
         case 'name':
           filtered = filtered.filter(user =>
-            user.fullName.toLowerCase().includes(searchLower)
+            (user.fullName || '').toLowerCase().includes(searchLower)
           );
           break;
         case 'cin':
           filtered = filtered.filter(user =>
-            user.cin?.toLowerCase().includes(searchLower)
+            (user.cin || '').toLowerCase().includes(searchLower)
           );
           break;
         case 'position':
           filtered = filtered.filter(user =>
-            user.poste.toLowerCase().includes(searchLower)
+            (user.poste || '').toLowerCase().includes(searchLower)
           );
           break;
         default: // 'all'
           filtered = filtered.filter(user =>
-            user.fullName.toLowerCase().includes(searchLower) ||
-            user.cin?.toLowerCase().includes(searchLower) ||
-            user.poste.toLowerCase().includes(searchLower) ||
-            user.zone.toLowerCase().includes(searchLower) ||
-            user.subZone?.toLowerCase().includes(searchLower) ||
-            user.address?.toLowerCase().includes(searchLower) ||
-            user.trajectoryCode?.toLowerCase().includes(searchLower) ||
-            user.phoneNumber?.toLowerCase().includes(searchLower)
+            (user.fullName || '').toLowerCase().includes(searchLower) ||
+            (user.cin || '').toLowerCase().includes(searchLower) ||
+            (user.poste || '').toLowerCase().includes(searchLower) ||
+            (user.zone || '').toLowerCase().includes(searchLower) ||
+            (user.subZone || '').toLowerCase().includes(searchLower) ||
+            (user.address || '').toLowerCase().includes(searchLower) ||
+            (user.trajectoryCode || '').toLowerCase().includes(searchLower) ||
+            (user.phoneNumber || '').toLowerCase().includes(searchLower)
           );
       }
     }

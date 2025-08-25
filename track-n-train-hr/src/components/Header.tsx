@@ -200,16 +200,15 @@ export default function Header({ userPhoto, userName: initialUserName }: { userP
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
-      position: 'relative',
+      position: 'sticky',
+      top: 0,
+      zIndex: 1000,
       background: darkMode
         ? `rgba(24, 25, 26, ${scrollOpacity})`
         : `rgba(255, 255, 255, ${scrollOpacity})`,
       borderBottom: darkMode
         ? `1px solid rgba(51, 51, 51, ${scrollOpacity})`
         : `1px solid rgba(238, 238, 238, ${scrollOpacity})`,
-      position: 'sticky',
-      top: 0,
-      zIndex: 1000,
       transition: 'background 0.2s ease-out, border-bottom 0.2s ease-out',
       backdropFilter: 'blur(10px)',
       WebkitBackdropFilter: 'blur(10px)'

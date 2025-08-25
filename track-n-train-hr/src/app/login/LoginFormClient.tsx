@@ -6,11 +6,23 @@ import { COLORS, BUTTON_COLORS } from "@/lib/colors";
 
 export default function LoginFormClient() {
   const [darkMode, setDarkMode] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [windowWidth, setWindowWidth] = useState(1024); // Default to desktop size
 
-  // Check for dark mode on component mount
+  // Check for dark mode and window size on component mount
   useEffect(() => {
+    setMounted(true);
+    setWindowWidth(window.innerWidth);
+    
     const isDark = document.documentElement.classList.contains('dark');
     setDarkMode(isDark);
+
+    // Handle window resize
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    window.addEventListener('resize', handleResize);
 
     // Listen for theme changes
     const observer = new MutationObserver((mutations) => {
@@ -27,7 +39,10 @@ export default function LoginFormClient() {
       attributeFilter: ['class']
     });
 
-    return () => observer.disconnect();
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      observer.disconnect();
+    };
   }, []);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -78,27 +93,32 @@ export default function LoginFormClient() {
     }
   };
 
+  // Don't render until mounted to avoid hydration mismatch
+  if (!mounted) {
+    return null;
+  }
+
   return (
     <form onSubmit={handleSubmit} style={{
       backgroundColor: darkMode ? `${COLORS.ULTIMATE_GREY}F0` : `${COLORS.WHITE}F5`,
       backdropFilter: 'blur(20px)',
-      padding: window.innerWidth <= 576 ? '20px' : window.innerWidth <= 768 ? '30px' : '40px',
-      borderRadius: window.innerWidth <= 576 ? '12px' : '16px',
+      padding: windowWidth <= 576 ? '20px' : windowWidth <= 768 ? '30px' : '40px',
+      borderRadius: windowWidth <= 576 ? '12px' : '16px',
       boxShadow: darkMode
         ? '0 20px 60px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.1)'
         : '0 20px 60px rgba(28, 28, 28, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1)',
       width: '100%',
-      maxWidth: window.innerWidth <= 576 ? '90vw' : window.innerWidth <= 768 ? '400px' : '480px',
+      maxWidth: windowWidth <= 576 ? '90vw' : windowWidth <= 768 ? '400px' : '480px',
       display: 'flex',
       flexDirection: 'column',
-      gap: window.innerWidth <= 576 ? '12px' : '16px',
+      gap: windowWidth <= 576 ? '12px' : '16px',
       border: darkMode ? `1px solid ${COLORS.ULTIMATE_GREY}` : `1px solid ${COLORS.ULTIMATE_GREY}80`,
-      margin: window.innerWidth <= 576 ? '10px' : '20px'
+      margin: windowWidth <= 576 ? '10px' : '20px'
     }}>
       <h1 style={{
-        fontSize: window.innerWidth <= 576 ? '24px' : window.innerWidth <= 768 ? '28px' : '32px',
+        fontSize: windowWidth <= 576 ? '24px' : windowWidth <= 768 ? '28px' : '32px',
         fontWeight: 'bold',
-        marginBottom: window.innerWidth <= 576 ? '12px' : '16px',
+        marginBottom: windowWidth <= 576 ? '12px' : '16px',
         textAlign: 'center',
         color: darkMode ? COLORS.WHITE : COLORS.BLACK,
         backgroundImage: `linear-gradient(135deg, ${COLORS.ORANGE_RELATS} 0%, ${COLORS.ORANGE_2} 100%)`,

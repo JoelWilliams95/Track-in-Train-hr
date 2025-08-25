@@ -37,12 +37,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const userName = cookieStore.get('userName')?.value || '';
   return (
     <html lang="en" suppressHydrationWarning>
-      <body style={{ margin: 0, padding: 0, minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <body className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <ThemeProviderClient>
           <ModalProvider>
             <ErrorBoundary>
               <Header userPhoto={userPhoto} userName={userName} />
-              <div style={{ flex: 1 }}>{children}</div>
+              <main className="flex-1">{children}</main>
               <Footer />
             </ErrorBoundary>
           </ModalProvider>

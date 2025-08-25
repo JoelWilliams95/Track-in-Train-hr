@@ -2,12 +2,31 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
-import Header from '@/components/Header';
 import { getCookie } from '@/lib/cookies';
-import { getColors } from '@/lib/colors';
+import { StatsSkeleton, ListSkeleton, PageSkeleton } from '@/components/ui/SkeletonLoader';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { 
+  Users, 
+  UserPlus, 
+  Shield, 
+  Activity, 
+  Download, 
+  Eye, 
+  EyeOff,
+  Edit3,
+  Trash2,
+  Crown,
+  Calendar,
+  Clock,
+  AlertTriangle,
+  CheckCircle,
+  TrendingUp
+} from 'lucide-react';
 
 interface User {
   _id?: string;
+  id?: string;
   fullName: string;
   email: string;
   role: string;
@@ -18,6 +37,12 @@ interface User {
   isActive: boolean;
   lastLogin?: string;
   createdAt?: string;
+  updatedAt?: string;
+  // Training related fields
+  trainingStartDate?: string;
+  trainingEndDate?: string;
+  formationStatus?: string;
+  status?: string;
 }
 
 export default function Dashboard() {
@@ -34,8 +59,7 @@ export default function Dashboard() {
   const [showLogs, setShowLogs] = useState(false);
   const [logs, setLogs] = useState<any[]>([]);
   const [logsLoading, setLogsLoading] = useState(false);
-
-  const colors = getColors(darkMode);
+  const [stats, setStats] = useState({ activeUsers: 0, totalUsers: 0, recentLogins: 0, adminCount: 0 });
 
   useEffect(() => {
     setMounted(true);
@@ -52,6 +76,44 @@ export default function Dashboard() {
     // Fetch users
     fetchUsers();
   }, [router]);
+
+  // Calculate stats from users data
+  const getStats = () => {
+    const activeUsers = users.filter(u => u.isActive).length;
+    const totalUsers = users.length;
+    const recentLogins = users.filter(u => {
+      if (!u.lastLogin) return false;
+      const loginDate = new Date(u.lastLogin);
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      return loginDate > weekAgo;
+    }).length;
+    const adminCount = users.filter(u => u.role === 'Admin' || u.role === 'SuperAdmin').length;
+    
+    return { activeUsers, totalUsers, recentLogins, adminCount };
+  };
+
+  const getRoleIcon = (role: string) => {
+    switch (role) {
+      case 'SuperAdmin': return <Crown className="w-4 h-4" />;
+      case 'Admin': return <Shield className="w-4 h-4" />;
+      default: return <Users className="w-4 h-4" />;
+    }
+  };
+
+  const getRoleColor = (role: string) => {
+    switch (role) {
+      case 'SuperAdmin': return darkMode ? 'text-purple-300 bg-purple-900/20 border-purple-700' : 'text-purple-800 bg-purple-100 border-purple-200';
+      case 'Admin': return darkMode ? 'text-blue-300 bg-blue-900/20 border-blue-700' : 'text-blue-800 bg-blue-100 border-blue-200';
+      default: return darkMode ? 'text-gray-300 bg-gray-700/20 border-gray-600' : 'text-gray-800 bg-gray-100 border-gray-200';
+    }
+  };
+
+  useEffect(() => {
+    if (users.length > 0) {
+      setStats(getStats());
+    }
+  }, [users]);
 
   const fetchUsers = async () => {
     try {
@@ -177,82 +239,139 @@ export default function Dashboard() {
   }
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      backgroundColor: darkMode ? '#0f172a' : '#f8fafc',
-      color: darkMode ? '#f1f5f9' : '#1e293b'
-    }}>
-      <Header userName={getCookie('userName') || ''} />
+    <div className={`min-h-screen transition-colors ${
+      darkMode ? 'bg-slate-900 text-slate-100' : 'bg-gray-50 text-gray-900'
+    }`}>
+      {/* No duplicate header - remove this line since app already has header */}
       
-      <div style={{
-        padding: '40px 20px',
-        maxWidth: '1400px',
-        margin: '0 auto'
-      }}>
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '32px'
-        }}>
-          <div>
-            <h1 style={{
-              fontSize: '32px',
-              fontWeight: 'bold',
-              margin: 0,
-              background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text'
-            }}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Dashboard Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8">
+          <div className="mb-4 sm:mb-0">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
               Dashboard
             </h1>
-            <p style={{
-              fontSize: '16px',
-              color: darkMode ? '#94a3b8' : '#64748b',
-              margin: '8px 0 0 0'
-            }}>
+            <p className={`text-base mt-2 ${
+              darkMode ? 'text-slate-400' : 'text-gray-600'
+            }`}>
               User Management & System Administration
             </p>
           </div>
           
-          <button
+          <Button
             onClick={() => setShowAddUserModal(true)}
-            style={{
-              padding: '12px 24px',
-              borderRadius: '8px',
-              border: 'none',
-              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-              color: 'white',
-              fontSize: '16px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
-              transition: 'all 0.2s ease'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = '0 6px 20px rgba(16, 185, 129, 0.4)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.3)';
-            }}
+            className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5"
           >
-            + Add New User
-          </button>
+            <UserPlus className="w-4 h-4 mr-2" />
+            Add New User
+          </Button>
+        </div>
+
+        {/* Stats Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <Card className={`p-6 border-0 shadow-lg ${
+            darkMode 
+              ? 'bg-gradient-to-br from-slate-800 to-slate-900 text-slate-100' 
+              : 'bg-gradient-to-br from-white to-gray-50 text-gray-900'
+          }`}>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className={`text-sm font-medium ${
+                  darkMode ? 'text-slate-400' : 'text-gray-600'
+                }`}>
+                  Active Users
+                </p>
+                <p className="text-2xl font-bold text-emerald-600">
+                  {loading ? '...' : stats.activeUsers}
+                </p>
+              </div>
+              <div className={`p-3 rounded-full ${
+                darkMode ? 'bg-emerald-900/20' : 'bg-emerald-100'
+              }`}>
+                <Activity className="w-6 h-6 text-emerald-600" />
+              </div>
+            </div>
+          </Card>
+
+          <Card className={`p-6 border-0 shadow-lg ${
+            darkMode 
+              ? 'bg-gradient-to-br from-slate-800 to-slate-900 text-slate-100' 
+              : 'bg-gradient-to-br from-white to-gray-50 text-gray-900'
+          }`}>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className={`text-sm font-medium ${
+                  darkMode ? 'text-slate-400' : 'text-gray-600'
+                }`}>
+                  Total Users
+                </p>
+                <p className="text-2xl font-bold text-blue-600">
+                  {loading ? '...' : stats.totalUsers}
+                </p>
+              </div>
+              <div className={`p-3 rounded-full ${
+                darkMode ? 'bg-blue-900/20' : 'bg-blue-100'
+              }`}>
+                <Users className="w-6 h-6 text-blue-600" />
+              </div>
+            </div>
+          </Card>
+
+          <Card className={`p-6 border-0 shadow-lg ${
+            darkMode 
+              ? 'bg-gradient-to-br from-slate-800 to-slate-900 text-slate-100' 
+              : 'bg-gradient-to-br from-white to-gray-50 text-gray-900'
+          }`}>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className={`text-sm font-medium ${
+                  darkMode ? 'text-slate-400' : 'text-gray-600'
+                }`}>
+                  Recent Logins
+                </p>
+                <p className="text-2xl font-bold text-purple-600">
+                  {loading ? '...' : stats.recentLogins}
+                </p>
+              </div>
+              <div className={`p-3 rounded-full ${
+                darkMode ? 'bg-purple-900/20' : 'bg-purple-100'
+              }`}>
+                <Clock className="w-6 h-6 text-purple-600" />
+              </div>
+            </div>
+          </Card>
+
+          <Card className={`p-6 border-0 shadow-lg ${
+            darkMode 
+              ? 'bg-gradient-to-br from-slate-800 to-slate-900 text-slate-100' 
+              : 'bg-gradient-to-br from-white to-gray-50 text-gray-900'
+          }`}>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className={`text-sm font-medium ${
+                  darkMode ? 'text-slate-400' : 'text-gray-600'
+                }`}>
+                  Admin Count
+                </p>
+                <p className="text-2xl font-bold text-orange-600">
+                  {loading ? '...' : stats.adminCount}
+                </p>
+              </div>
+              <div className={`p-3 rounded-full ${
+                darkMode ? 'bg-orange-900/20' : 'bg-orange-100'
+              }`}>
+                <Shield className="w-6 h-6 text-orange-600" />
+              </div>
+            </div>
+          </Card>
         </div>
 
         {/* Users Table */}
-        <div style={{
-          backgroundColor: darkMode ? '#1e293b' : '#ffffff',
-          borderRadius: '12px',
-          padding: '24px',
-          boxShadow: darkMode 
-            ? '0 4px 20px rgba(0, 0, 0, 0.3)' 
-            : '0 4px 20px rgba(0, 0, 0, 0.1)',
-          border: darkMode ? '1px solid #334155' : '1px solid #e2e8f0'
-        }}>
+        <Card className={`p-6 border-0 shadow-lg ${
+          darkMode 
+            ? 'bg-gradient-to-br from-slate-800 to-slate-900 text-slate-100' 
+            : 'bg-gradient-to-br from-white to-gray-50 text-gray-900'
+        }`}>
           <h2 style={{
             fontSize: '20px',
             fontWeight: '600',
@@ -389,19 +508,14 @@ export default function Dashboard() {
               </table>
             </div>
           )}
-        </div>
+        </Card>
 
         {/* System Logs Section */}
-        <div style={{
-          backgroundColor: darkMode ? '#1e293b' : '#ffffff',
-          borderRadius: '12px',
-          padding: '24px',
-          marginTop: '32px',
-          boxShadow: darkMode
-            ? '0 4px 20px rgba(0, 0, 0, 0.3)'
-            : '0 4px 20px rgba(0, 0, 0, 0.1)',
-          border: darkMode ? '1px solid #334155' : '1px solid #e2e8f0'
-        }}>
+        <Card className={`p-6 border-0 shadow-lg mt-8 ${
+          darkMode 
+            ? 'bg-gradient-to-br from-slate-800 to-slate-900 text-slate-100' 
+            : 'bg-gradient-to-br from-white to-gray-50 text-gray-900'
+        }`}>
           <div style={{
             display: 'flex',
             justifyContent: 'space-between',
@@ -583,7 +697,7 @@ export default function Dashboard() {
               )}
             </div>
           )}
-        </div>
+        </Card>
       </div>
     </div>
   );
