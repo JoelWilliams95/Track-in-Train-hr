@@ -1,7 +1,3 @@
-
-
-This file provides guidance to WARP (warp.dev) when working with code in this repository.
-
 ## Project Overview
 
 Track-in-Train HR Management System is a comprehensive Human Resources Management System built with Next.js for transportation companies. The system features personnel management, transport route optimization, and employee lifecycle tracking with dual database support (MongoDB and JSON files).
